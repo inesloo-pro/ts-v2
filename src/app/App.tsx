@@ -37,7 +37,7 @@ export default function App() {
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 overflow-hidden pt-[12px] pl-[20px] pr-[12px]">
         {/* Top Bar */}
-        <TopBar />
+        <TopBar activeMenuItem={activeMenuItem} onMenuItemChange={handleMenuItemChange} />
 
         {/* White rounded content container */}
         <div className="bg-[rgba(255,255,255,0.4)] flex-1 relative rounded-tl-[16px] rounded-tr-[16px] overflow-hidden">

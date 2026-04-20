@@ -1,5 +1,5 @@
-import { Settings } from 'lucide-react';
-import { useState } from 'react';
+import { Settings, GripHorizontal } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { TestSettingsModal } from './TestSettingsModal';
 
 interface DesignToggleProps {
@@ -12,10 +12,73 @@ export function DesignToggle({
   onToggleUserCohort
 }: DesignToggleProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  const isDragging = useRef(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+  const toolbarRef = useRef<HTMLDivElement>(null);
+
+  // Initialize position centered at the top
+  useEffect(() => {
+    if (toolbarRef.current) {
+      const rect = toolbarRef.current.getBoundingClientRect();
+      setPosition({
+        x: window.innerWidth / 2 - rect.width / 2,
+        y: 8,
+      });
+    }
+  }, []);
+
+  const handleGripMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    isDragging.current = true;
+    const rect = toolbarRef.current!.getBoundingClientRect();
+    dragOffset.current = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+    e.preventDefault();
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current || !toolbarRef.current) return;
+      const rect = toolbarRef.current.getBoundingClientRect();
+      const newX = Math.max(0, Math.min(window.innerWidth - rect.width, e.clientX - dragOffset.current.x));
+      const newY = Math.max(0, Math.min(window.innerHeight - rect.height, e.clientY - dragOffset.current.y));
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleMouseUp = () => {
+      isDragging.current = false;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
 
   return (
     <>
-      <div className="fixed top-[8px] left-1/2 -translate-x-1/2 z-[100] flex items-center gap-[6px] bg-[#1a1a1a] rounded-[8px] shadow-lg border border-[#333333] p-[4px]">
+      <div
+        ref={toolbarRef}
+        className="fixed z-[100] flex items-center gap-[4px] bg-[#1a1a1a] rounded-[8px] shadow-lg border border-[#333333] p-[4px] select-none"
+        style={{
+          top: position ? position.y : 8,
+          left: position ? position.x : '50%',
+          transform: position ? 'none' : 'translateX(-50%)',
+        }}
+      >
+        {/* Drag Handle */}
+        <div
+          onMouseDown={handleGripMouseDown}
+          className="flex items-center justify-center px-[2px] cursor-grab active:cursor-grabbing text-[#555555] hover:text-[#888888] transition-colors"
+          title="Drag to move"
+        >
+          <GripHorizontal size={12} />
+        </div>
+
         {/* Segmented Control - Cohort Plans */}
         <div className="flex items-center gap-[3px] bg-[#2a2a2a] rounded-[6px] p-[3px]">
           <button
