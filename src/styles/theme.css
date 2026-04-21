@@ -150,6 +150,7 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    font-family: 'Gilroy', sans-serif !important;
   }
 
   body {
