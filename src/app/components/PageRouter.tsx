@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { AnalyticsOverview } from './features/views/AnalyticsOverview';
 import { AllPostsView } from './features/views/AllPostsView';
 import { CampaignsPage } from './features/views/CampaignsPage';
+import { CalendarView } from './features/views/CalendarView';
 import { PlaceholderPage } from './features/views/PlaceholderPage';
 import { getL1Page, getEffectiveSubPages, type L1MenuItem } from '../navigation/navConfig';
 
@@ -34,6 +35,10 @@ export function PageRouter({ activeL1, activeL2, userCohort }: PageRouterProps) 
 
   if (activeL1 === 'allposts' && activeL2 === 'campaigns') {
     return <CampaignsPage userCohort={userCohort} />;
+  }
+
+  if (activeL1 === 'publishing' && activeL2 === 'calendar') {
+    return <CalendarView userCohort={userCohort} />;
   }
 
   return (
