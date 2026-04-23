@@ -18,8 +18,11 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SLOT_H = 56;       // px per hour slot
-const TIME_W  = 72;      // px for the time label column
+const SLOT_H         = 56;   // px per hour row
+const TIME_W         = 72;   // px for the time-label column
+const DAY_HEADER_H   = 52;   // px: day-name + date-circle row
+const EVENTS_ROW_H   = 48;   // px: holidays row (fixed height, fits 2 chips)
+const GRID_OFFSET    = DAY_HEADER_H + EVENTS_ROW_H; // 100 — top of the first hour row
 
 const WEEK = [
   { day: 'Sun', date: 19, isToday: false, isWeekend: true  },
@@ -51,9 +54,9 @@ const MOCK_POSTS = [
   { date: 23, hourIdx: 2, type: 'star' as const },
 ];
 
-// Current time: Thu 23 at ~5:05 PM = hour index 4 + 5/60
-const NOW_DAY = 23;
-const NOW_Y   = (4 + 5 / 60) * SLOT_H;
+// Thu 23 at ~5:05 PM = hour index 4 + 5/60 minutes
+// Absolute top = GRID_OFFSET + (4 + 5/60) * SLOT_H
+const NOW_TOP = GRID_OFFSET + (4 + 5 / 60) * SLOT_H;
 
 const MEDIA_SHADES = [
   '#d4dde3', '#c0cfd8', '#e0e6ea',
@@ -63,7 +66,7 @@ const MEDIA_SHADES = [
 
 const COL_TEMPLATE = `${TIME_W}px repeat(7, 1fr)`;
 
-// ─── Small sub-components ─────────────────────────────────────────────────────
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function DropdownBtn({ label }: { label: string }) {
   return (
@@ -89,9 +92,9 @@ function ViewIconBtn({ icon, active = false, onClick }: { icon: React.ReactNode;
 
 function HolidayChip({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-[4px] bg-[#f0f4f6] rounded-[3px] px-[5px] py-[2px] min-w-0 overflow-hidden">
+    <div className="flex items-center gap-[4px] bg-[#f0f4f6] rounded-[3px] px-[5px] py-[2px] overflow-hidden">
       <div className="size-[5px] rounded-full bg-[#c0cfd8] shrink-0" />
-      <span className="font-['Gilroy:Medium',sans-serif] text-[10px] leading-[14px] text-[#76869a] tracking-[-0.03px] truncate">
+      <span className="font-['Gilroy:Medium',sans-serif] text-[10px] leading-[14px] text-[#76869a] truncate">
         {label}
       </span>
     </div>
@@ -160,12 +163,12 @@ export function CalendarView({ userCohort }: CalendarViewProps) {
   const initialGroup      = groups.length > 0 ? groups[0].id : 'all';
   const initialProfileIds = groups.length > 0 ? (groupProfiles[initialGroup] || []) : profiles.map(p => p.id);
 
-  const [selectedItem,       setSelectedItem]       = useState<string | null>(groups.length > 0 ? 'group' : (profiles[0]?.id || null));
+  const [selectedItem,        setSelectedItem]        = useState<string | null>(groups.length > 0 ? 'group' : (profiles[0]?.id || null));
   const [isGroupSelectorOpen, setIsGroupSelectorOpen] = useState(false);
-  const [currentGroup,       setCurrentGroup]       = useState(initialGroup);
-  const [currentProfileIds,  setCurrentProfileIds]  = useState(initialProfileIds);
-  const [isUnsavedSelection, setIsUnsavedSelection] = useState(false);
-  const [mediaLibraryOpen,   setMediaLibraryOpen]   = useState(true);
+  const [currentGroup,        setCurrentGroup]        = useState(initialGroup);
+  const [currentProfileIds,   setCurrentProfileIds]   = useState(initialProfileIds);
+  const [isUnsavedSelection,  setIsUnsavedSelection]  = useState(false);
+  const [mediaLibraryOpen,    setMediaLibraryOpen]    = useState(true);
   const selectorRef = useRef<HTMLDivElement>(null);
 
   const profilesInGroup  = profiles.filter(p => currentProfileIds.includes(p.id));
@@ -196,7 +199,6 @@ export function CalendarView({ userCohort }: CalendarViewProps) {
             hasGroups={groups.length > 0}
           />
         </div>
-        {/* Split CTA */}
         <div className="flex shrink-0">
           <button className="flex items-center gap-[8px] h-[40px] pl-[16px] pr-[14px] bg-[#76869a] rounded-l-[6px] hover:opacity-80 transition-opacity">
             <Plus size={15} color="white" strokeWidth={2.5} />
@@ -213,7 +215,6 @@ export function CalendarView({ userCohort }: CalendarViewProps) {
 
       {/* ── Toolbar ─────────────────────────────────────────────── */}
       <div className="flex items-center gap-[8px] px-[32px] pb-[16px] shrink-0">
-        {/* Left group */}
         <button className="h-[32px] px-[14px] border border-[#e6ecf4] rounded-[6px] bg-white hover:border-[#c0cfd8] transition-colors font-['Gilroy:Semibold',sans-serif] text-[12px] text-[#1d1d1b] tracking-[-0.072px] shrink-0">
           Today
         </button>
@@ -229,7 +230,6 @@ export function CalendarView({ userCohort }: CalendarViewProps) {
           Apr 19 – 25
         </span>
         <div className="flex-1" />
-        {/* Right group */}
         <DropdownBtn label="Week" />
         <DropdownBtn label="All posts" />
         <div className="flex items-center gap-[2px]">
@@ -237,107 +237,99 @@ export function CalendarView({ userCohort }: CalendarViewProps) {
           <ViewIconBtn icon={<AlignJustify size={13} />} />
           <ViewIconBtn icon={<Users size={13} />} />
           <ViewIconBtn icon={<SlidersHorizontal size={13} />} />
-          <ViewIconBtn
-            icon={<FolderOpen size={13} />}
-            active={mediaLibraryOpen}
-            onClick={() => setMediaLibraryOpen(v => !v)}
-          />
+          <ViewIconBtn icon={<FolderOpen size={13} />} active={mediaLibraryOpen} onClick={() => setMediaLibraryOpen(v => !v)} />
         </div>
       </div>
 
-      {/* ── Main body ───────────────────────────────────────────── */}
+      {/* ── Calendar + Media Library ─────────────────────────────── */}
       <div className="flex flex-1 min-h-0 gap-[12px] px-[32px] pb-[32px]">
 
-        {/* ── Calendar panel ─────────────────────────────────────── */}
-        <div className="flex flex-col flex-1 min-w-0 border border-[#e6ecf4] rounded-[8px] overflow-hidden bg-white">
+        {/* Calendar panel — single scroll container so column widths always match */}
+        <div className="flex-1 min-w-0 border border-[#e6ecf4] rounded-[8px] overflow-hidden bg-white">
+          <div className="size-full overflow-y-auto relative">
 
-          {/* Day header — outside scroll, always visible */}
-          <div
-            className="grid shrink-0 border-b border-[#e6ecf4] bg-white"
-            style={{ gridTemplateColumns: COL_TEMPLATE }}
-          >
-            {/* UTC label */}
-            <div className="flex items-end justify-center pb-[8px] pt-[10px] border-r border-[#e6ecf4]">
-              <span className="font-['Gilroy:Medium',sans-serif] text-[10px] text-[#97acbd] tracking-[0]">
-                UTC +02:00
-              </span>
-            </div>
-            {/* Day columns */}
-            {WEEK.map(col => (
-              <div
-                key={col.date}
-                className={`flex flex-col items-center gap-[4px] pt-[10px] pb-[8px] border-r border-[#e6ecf4] last:border-r-0 ${col.isWeekend ? 'bg-[#fafbfc]' : ''}`}
-              >
-                <span className={`font-['Gilroy:Medium',sans-serif] text-[10px] uppercase tracking-[0.5px] ${col.isToday ? 'text-[#1d1d1b]' : 'text-[#97acbd]'}`}>
-                  {col.day}
-                </span>
-                <div className={`size-[28px] rounded-full flex items-center justify-center ${col.isToday ? 'bg-[#1d1d1b]' : ''}`}>
-                  <span className={`font-['Gilroy:Bold',sans-serif] text-[14px] tracking-[-0.084px] ${col.isToday ? 'text-white' : 'text-[#1d1d1b]'}`}>
-                    {col.date}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Events row — outside scroll */}
-          <div
-            className="grid shrink-0 border-b border-[#e6ecf4] bg-white"
-            style={{ gridTemplateColumns: COL_TEMPLATE }}
-          >
-            <div className="border-r border-[#e6ecf4]" />
-            {WEEK.map(col => (
-              <div
-                key={col.date}
-                className={`flex flex-col gap-[3px] p-[4px] border-r border-[#e6ecf4] last:border-r-0 min-h-[32px] ${col.isWeekend ? 'bg-[#fafbfc]' : ''}`}
-              >
-                {(HOLIDAYS[col.date] ?? []).map((h, i) => (
-                  <HolidayChip key={i} label={h} />
-                ))}
-              </div>
-            ))}
-          </div>
-
-          {/* Scrollable time grid */}
-          <div className="flex-1 overflow-y-auto relative">
-
-            {/* Current time indicator — positioned within scroll body */}
+            {/* ── Day header — sticky at top:0 ── */}
             <div
-              className="absolute z-10 pointer-events-none"
-              style={{ top: NOW_Y, left: 0, right: 0 }}
+              className="sticky top-0 z-20 grid bg-white border-b border-[#e6ecf4]"
+              style={{ gridTemplateColumns: COL_TEMPLATE, height: DAY_HEADER_H }}
             >
-              <div className="flex items-center" style={{ paddingLeft: TIME_W - 4 }}>
-                <div className="size-[8px] rounded-full bg-[#97acbd] shrink-0" />
-                <div className="flex-1 h-px bg-[#97acbd]" />
+              {/* UTC label */}
+              <div className="flex items-end justify-center pb-[8px] border-r border-[#e6ecf4]">
+                <span className="font-['Gilroy:Medium',sans-serif] text-[10px] text-[#97acbd] tracking-[0]">
+                  UTC +02:00
+                </span>
               </div>
+              {WEEK.map(col => (
+                <div
+                  key={col.date}
+                  className={`flex flex-col items-center justify-end gap-[4px] pb-[8px] border-r border-[#e6ecf4] last:border-r-0 ${col.isWeekend ? 'bg-[#fafbfc]' : ''}`}
+                >
+                  <span className={`font-['Gilroy:Medium',sans-serif] text-[10px] uppercase tracking-[0.5px] ${col.isToday ? 'text-[#1d1d1b]' : 'text-[#97acbd]'}`}>
+                    {col.day}
+                  </span>
+                  <div className={`size-[28px] rounded-full flex items-center justify-center ${col.isToday ? 'bg-[#1d1d1b]' : ''}`}>
+                    <span className={`font-['Gilroy:Bold',sans-serif] text-[14px] tracking-[-0.084px] ${col.isToday ? 'text-white' : 'text-[#1d1d1b]'}`}>
+                      {col.date}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Hour rows */}
+            {/* ── Events / holidays row — sticky just below day header ── */}
+            <div
+              className="sticky z-10 grid bg-white border-b border-[#e6ecf4]"
+              style={{ gridTemplateColumns: COL_TEMPLATE, height: EVENTS_ROW_H, top: DAY_HEADER_H }}
+            >
+              <div className="border-r border-[#e6ecf4]" />
+              {WEEK.map(col => (
+                <div
+                  key={col.date}
+                  className={`flex flex-col gap-[3px] p-[4px] border-r border-[#e6ecf4] last:border-r-0 overflow-hidden ${col.isWeekend ? 'bg-[#fafbfc]' : ''}`}
+                >
+                  {(HOLIDAYS[col.date] ?? []).map((h, i) => (
+                    <HolidayChip key={i} label={h} />
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            {/* ── Current time indicator (absolute within scroll content) ── */}
+            <div
+              className="absolute z-10 pointer-events-none flex items-center"
+              style={{ top: NOW_TOP, left: TIME_W - 4, right: 0 }}
+            >
+              <div className="size-[8px] rounded-full bg-[#97acbd] shrink-0" />
+              <div className="flex-1 h-px bg-[#97acbd]" />
+            </div>
+
+            {/* ── Hour rows ── */}
             {HOURS.map((hour, rowIdx) => (
               <div
                 key={rowIdx}
                 className="grid border-b border-[#f0f4f6] last:border-b-0"
                 style={{ gridTemplateColumns: COL_TEMPLATE, height: SLOT_H }}
               >
-                {/* Time label — positioned so it sits on the top grid line */}
+                {/* Time label — sits on the top grid line */}
                 <div className="relative border-r border-[#e6ecf4]">
                   <span
-                    className="absolute right-[10px] font-['Gilroy:Medium',sans-serif] text-[11px] text-[#b0bec9] tracking-[0] whitespace-nowrap select-none"
+                    className="absolute right-[10px] font-['Gilroy:Medium',sans-serif] text-[11px] text-[#b0bec9] whitespace-nowrap select-none"
                     style={{ top: -8 }}
                   >
                     {hour}
                   </span>
                 </div>
-
                 {/* Day cells */}
                 {WEEK.map(col => {
                   const posts = MOCK_POSTS.filter(p => p.date === col.date && p.hourIdx === rowIdx);
                   return (
                     <div
                       key={col.date}
-                      className={`border-r border-[#f0f4f6] last:border-r-0 relative cursor-pointer ${
-                        col.isToday ? 'bg-[#fafeff]' : col.isWeekend ? 'bg-[#fafbfc]' : 'bg-white'
-                      } hover:bg-[#f5f7f9] transition-colors`}
+                      className={`border-r border-[#f0f4f6] last:border-r-0 cursor-pointer transition-colors ${
+                        col.isToday   ? 'bg-[#fafeff] hover:bg-[#f2f8fa]'
+                        : col.isWeekend ? 'bg-[#fafbfc] hover:bg-[#f4f6f8]'
+                        : 'bg-white hover:bg-[#f8f9fb]'
+                      }`}
                     >
                       {posts.map((p, i) => <PostChip key={i} type={p.type} />)}
                     </div>
@@ -345,10 +337,11 @@ export function CalendarView({ userCohort }: CalendarViewProps) {
                 })}
               </div>
             ))}
+
           </div>
         </div>
 
-        {/* Media Library */}
+        {/* Media Library panel */}
         {mediaLibraryOpen && (
           <MediaLibraryPanel onClose={() => setMediaLibraryOpen(false)} />
         )}
