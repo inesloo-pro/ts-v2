@@ -1,4 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
+import { Download } from 'lucide-react';
+import { ExportReportModal } from './ExportReportModal';
 import svgPaths from "../../../../imports/Iconosquare-4-1/svg-cr9mbv1gr2";
 import { FunctionalSPSelector } from "../navigation/FunctionalSPSelector";
 import { GroupSelectionModal } from "../groups/GroupSelectionModal";
@@ -53,6 +55,7 @@ export function AnalyticsOverview({ userCohort }: AnalyticsOverviewProps) {
     ? (groupProfiles[initialGroup] || [])
     : profiles.map(p => p.id);
 
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<string | null>(
     groups.length > 0 ? 'group' : (profiles[0]?.id || null)
   );
@@ -101,11 +104,11 @@ export function AnalyticsOverview({ userCohort }: AnalyticsOverviewProps) {
   return (
     <div className="content-stretch flex flex-col gap-[32px] items-start p-[32px] relative size-full">
       {/* Header */}
-      <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-full">
+      <div className="content-stretch flex items-center gap-[16px] relative shrink-0 w-full">
         <div className="flex flex-col font-['Gilroy:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1d1d1b] text-[32px] tracking-[-0.32px] whitespace-nowrap">
           <p className="leading-[32px]">Overview</p>
         </div>
-        <div ref={selectorRef} className="relative shrink-0 h-[64px] w-full">
+        <div ref={selectorRef} className="relative shrink-0 h-[64px] flex-1 min-w-0">
           <FunctionalSPSelector
             currentGroup={currentGroup}
             groupBadge={currentGroupBadge}
@@ -122,6 +125,13 @@ export function AnalyticsOverview({ userCohort }: AnalyticsOverviewProps) {
             onSaveSelection={() => console.log('Save unsaved selection as new group')}
           />
         </div>
+        <button
+          onClick={() => setIsExportModalOpen(true)}
+          className="bg-[#76869a] flex items-center gap-[8px] rounded-[6px] h-[40px] px-[16px] shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+        >
+          <span className="font-['Gilroy:Semibold',sans-serif] text-[14px] text-white tracking-[-0.112px] whitespace-nowrap leading-[16px]">Export</span>
+          <Download size={16} color="white" />
+        </button>
       </div>
 
       {/* Group Selection Modal - always available for all cohorts */}
@@ -141,6 +151,11 @@ export function AnalyticsOverview({ userCohort }: AnalyticsOverviewProps) {
         groupProfiles={groupProfiles}
         groupSelectionStage="stage01"
         canCreateGroups={userCohort !== 'launch'}
+      />
+
+      <ExportReportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
       />
 
       {/* Date Filters and KPI Cards */}

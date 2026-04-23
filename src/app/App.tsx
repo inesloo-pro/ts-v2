@@ -1,18 +1,28 @@
 import { useState } from 'react';
 import { LeftSidebar } from './components/features/groups/LeftSidebar';
+import { SettingsSidebar } from './components/features/groups/SettingsSidebar';
 import { TopBar } from './components/TopBar';
-import { AnalyticsOverview } from './components/features/views/AnalyticsOverview';
+import { PageRouter } from './components/PageRouter';
+import { SettingsView } from './components/features/views/SettingsView';
 import { DesignToggle } from './components/DesignToggle';
+import { type L1MenuItem, getFirstSubPage } from './navigation/navConfig';
 
 export default function App() {
-  // User Cohort
   const [userCohort, setUserCohort] = useState<'launch' | 'excel' | 'trial'>('excel');
 
-  // Navigation state - tracks which menu item is active
-  const [activeMenuItem, setActiveMenuItem] = useState<'home' | 'dashboard' | 'analytics' | 'reports' | 'allposts' | 'campaigns' | 'publishing' | 'conversations' | 'listening'>('analytics');
+  const [activeMenuItem, setActiveMenuItem] = useState<L1MenuItem>('analytics');
+  const [activeSubMenuItem, setActiveSubMenuItem] = useState<string>('overview');
+  const [activeView, setActiveView] = useState<'main' | 'settings'>('main');
+  const [activeSettingsItem, setActiveSettingsItem] = useState('sparks-ai');
 
-  const handleMenuItemChange = (menuItem: 'home' | 'dashboard' | 'analytics' | 'reports' | 'allposts' | 'campaigns' | 'publishing' | 'conversations' | 'listening') => {
-    setActiveMenuItem(menuItem);
+  const handleMenuItemChange = (item: L1MenuItem) => {
+    setActiveMenuItem(item);
+    setActiveSubMenuItem(getFirstSubPage(item));
+    setActiveView('main');
+  };
+
+  const handleSettingsClick = () => {
+    setActiveView(v => v === 'settings' ? 'main' : 'settings');
   };
 
   return (
@@ -22,27 +32,45 @@ export default function App() {
         backgroundImage: "linear-gradient(116.156deg, rgba(226, 226, 226, 0.1) 0%, rgba(170, 167, 172, 0.15) 50%, rgba(125, 125, 125, 0.15) 80%, rgba(228, 228, 228, 0.15) 100%), linear-gradient(90deg, rgb(235, 238, 238) 0%, rgb(235, 238, 238) 100%)"
       }}
     >
-      {/* Design Toggle */}
       <DesignToggle
         userCohort={userCohort}
         onToggleUserCohort={setUserCohort}
       />
 
-      {/* Left Sidebar */}
-      <LeftSidebar
-        activeMenuItem={activeMenuItem}
-        onMenuItemChange={handleMenuItemChange}
-      />
+      {activeView === 'settings' ? (
+        <SettingsSidebar
+          activeItem={activeSettingsItem}
+          onItemChange={setActiveSettingsItem}
+          onBack={() => setActiveView('main')}
+        />
+      ) : (
+        <LeftSidebar
+          activeMenuItem={activeMenuItem}
+          onMenuItemChange={handleMenuItemChange}
+          activeSubMenuItem={activeSubMenuItem}
+          onSubMenuItemChange={setActiveSubMenuItem}
+        />
+      )}
 
-      {/* Main Content Area */}
       <div className="flex flex-col flex-1 overflow-hidden pt-[12px] pl-[20px] pr-[12px]">
-        {/* Top Bar */}
-        <TopBar activeMenuItem={activeMenuItem} onMenuItemChange={handleMenuItemChange} />
+        <TopBar
+          activeMenuItem={activeMenuItem}
+          onMenuItemChange={handleMenuItemChange}
+          isSettingsActive={activeView === 'settings'}
+          onSettingsClick={handleSettingsClick}
+        />
 
-        {/* White rounded content container */}
         <div className="bg-[rgba(255,255,255,0.4)] flex-1 relative rounded-tl-[16px] rounded-tr-[16px] overflow-hidden">
           <div className="overflow-clip rounded-[inherit] size-full">
-            <AnalyticsOverview userCohort={userCohort} />
+            {activeView === 'settings' ? (
+              <SettingsView activeItem={activeSettingsItem} />
+            ) : (
+              <PageRouter
+                activeL1={activeMenuItem}
+                activeL2={activeSubMenuItem}
+                userCohort={userCohort}
+              />
+            )}
           </div>
         </div>
       </div>

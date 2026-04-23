@@ -1,18 +1,19 @@
 import svgPaths from "../../imports/Iconosquare-4-1/svg-cr9mbv1gr2";
-
-type MenuItem = 'home' | 'dashboard' | 'analytics' | 'reports' | 'allposts' | 'campaigns' | 'publishing' | 'conversations' | 'listening';
+import type { L1MenuItem } from '../navigation/navConfig';
 
 interface TopBarProps {
-  activeMenuItem: MenuItem;
-  onMenuItemChange: (item: MenuItem) => void;
+  activeMenuItem: L1MenuItem;
+  onMenuItemChange: (item: L1MenuItem) => void;
+  isSettingsActive?: boolean;
+  onSettingsClick?: () => void;
 }
 
-export function TopBar({ activeMenuItem, onMenuItemChange }: TopBarProps) {
-  const isAnalyticsActive = activeMenuItem === 'analytics' || activeMenuItem === 'dashboard' || activeMenuItem === 'reports';
+export function TopBar({ activeMenuItem, onMenuItemChange, isSettingsActive, onSettingsClick }: TopBarProps) {
+  const isAnalyticsActive = activeMenuItem === 'analytics';
 
   const navItems = [
     {
-      id: 'home' as MenuItem,
+      id: 'home' as L1MenuItem,
       label: 'Home',
       icon: (
         <div className="absolute inset-[1.89%_5%_0_5%]">
@@ -26,7 +27,7 @@ export function TopBar({ activeMenuItem, onMenuItemChange }: TopBarProps) {
       ),
     },
     {
-      id: 'analytics' as MenuItem,
+      id: 'analytics' as L1MenuItem,
       label: 'Profile',
       isActive: isAnalyticsActive,
       icon: (
@@ -36,7 +37,7 @@ export function TopBar({ activeMenuItem, onMenuItemChange }: TopBarProps) {
       ),
     },
     {
-      id: 'allposts' as MenuItem,
+      id: 'allposts' as L1MenuItem,
       label: 'Content',
       icon: (
         <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 16">
@@ -48,7 +49,7 @@ export function TopBar({ activeMenuItem, onMenuItemChange }: TopBarProps) {
       ),
     },
     {
-      id: 'publishing' as MenuItem,
+      id: 'publishing' as L1MenuItem,
       label: 'Publishing',
       icon: (
         <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 16">
@@ -60,7 +61,7 @@ export function TopBar({ activeMenuItem, onMenuItemChange }: TopBarProps) {
       ),
     },
     {
-      id: 'conversations' as MenuItem,
+      id: 'conversations' as L1MenuItem,
       label: 'Conversations',
       icon: (
         <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 16">
@@ -151,7 +152,12 @@ export function TopBar({ activeMenuItem, onMenuItemChange }: TopBarProps) {
               </div>
 
               {/* Settings Icon */}
-              <div className="content-stretch flex gap-[16px] items-center p-[4px] relative rounded-[8px] shrink-0 cursor-pointer hover:bg-[rgba(0,0,0,0.04)] transition-colors">
+              <div
+                onClick={onSettingsClick}
+                className={`content-stretch flex gap-[16px] items-center p-[4px] relative rounded-[8px] shrink-0 cursor-pointer transition-colors ${
+                  isSettingsActive ? 'bg-[rgba(0,0,0,0.08)]' : 'hover:bg-[rgba(0,0,0,0.04)]'
+                }`}
+              >
                 <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
                   <div className="relative shrink-0 size-[16px]">
                     <div className="absolute inset-[0_2.5%_2.5%_5%]">

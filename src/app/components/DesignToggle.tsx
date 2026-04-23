@@ -17,13 +17,13 @@ export function DesignToggle({
   const dragOffset = useRef({ x: 0, y: 0 });
   const toolbarRef = useRef<HTMLDivElement>(null);
 
-  // Initialize position centered at the top
+  // Initialize position at the bottom left
   useEffect(() => {
     if (toolbarRef.current) {
       const rect = toolbarRef.current.getBoundingClientRect();
       setPosition({
-        x: window.innerWidth / 2 - rect.width / 2,
-        y: 8,
+        x: 16,
+        y: window.innerHeight - rect.height - 16,
       });
     }
   }, []);

@@ -200,7 +200,7 @@ export function FunctionalSPSelector({
     const calculateVisibleProfiles = () => {
       if (!containerRef.current) return;
 
-      const parentWidth = containerRef.current.parentElement?.offsetWidth || 0;
+      const parentWidth = containerRef.current.parentElement?.parentElement?.offsetWidth || 0;
       
       // Width breakdown:
       // - Arrow button: 22px (outside container)
@@ -248,8 +248,9 @@ export function FunctionalSPSelector({
 
     // Recalculate on window resize
     const resizeObserver = new ResizeObserver(calculateVisibleProfiles);
-    if (containerRef.current.parentElement) {
-      resizeObserver.observe(containerRef.current.parentElement);
+    const availableContainer = containerRef.current.parentElement?.parentElement;
+    if (availableContainer) {
+      resizeObserver.observe(availableContainer);
     }
 
     return () => {
@@ -272,8 +273,8 @@ export function FunctionalSPSelector({
   }, [showOverflowPopover]);
 
   return (
-    <div className="relative rounded-[12px] size-full">
-      <div ref={containerRef} className="content-stretch flex gap-[16px] items-center overflow-clip px-[16px] relative rounded-[inherit] size-full">
+    <div className="relative rounded-[12px] inline-flex h-full max-w-full">
+      <div ref={containerRef} className="content-stretch flex gap-[16px] items-center px-[16px] relative rounded-[inherit] h-full">
         {/* Dropdown arrow button */}
         <button
           onClick={onOpenGroupSelector}
