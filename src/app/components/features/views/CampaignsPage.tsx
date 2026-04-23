@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Search, Plus, Heart, MessageCircle, Eye } from 'lucide-react';
+import { Search, Plus, Heart, MessageCircle, Eye, Film, Image, LayoutGrid, Play } from 'lucide-react';
 import { FunctionalSPSelector } from '../navigation/FunctionalSPSelector';
 import { GroupSelectionModal } from '../groups/GroupSelectionModal';
 import {
@@ -42,9 +42,9 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     count: 500,
     countLabel: 'stories',
     metrics: [
-      { icon: <Eye size={10} />, value: '187.1' },
-      { icon: <MessageCircle size={10} />, value: '158.2' },
-      { icon: <Heart size={10} />, value: '2.87%' },
+      { icon: <Eye size={11} />, value: '187.1' },
+      { icon: <MessageCircle size={11} />, value: '158.2' },
+      { icon: <Heart size={11} />, value: '2.87%' },
     ],
     imageCols: 2,
     imageRows: 2,
@@ -57,9 +57,9 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     count: 103,
     countLabel: 'posts',
     metrics: [
-      { icon: <Heart size={10} />, value: '3.9K' },
-      { icon: <MessageCircle size={10} />, value: '164' },
-      { icon: <Eye size={10} />, value: '1%' },
+      { icon: <Heart size={11} />, value: '3.9K' },
+      { icon: <MessageCircle size={11} />, value: '164' },
+      { icon: <Eye size={11} />, value: '1%' },
     ],
     imageCols: 2,
     imageRows: 2,
@@ -80,10 +80,16 @@ function CampaignCardImages({ cols, rows }: { cols: number; rows: number }) {
   );
 }
 
+const TYPE_ICONS: Record<Campaign['type'], React.ReactNode> = {
+  Stories: <Play size={10} />,
+  Posts: <Image size={10} />,
+  Reels: <Film size={10} />,
+};
+
 function TypeBadge({ type }: { type: Campaign['type'] }) {
   return (
-    <div className="absolute top-[8px] left-[8px] flex items-center gap-[4px] bg-white rounded-[4px] px-[6px] py-[3px]">
-      <div className="size-[8px] rounded-full bg-[#97acbd] shrink-0" />
+    <div className="absolute top-[8px] left-[8px] flex items-center gap-[4px] bg-white rounded-[4px] px-[6px] py-[4px]">
+      <span className="text-[#97acbd] shrink-0">{TYPE_ICONS[type]}</span>
       <span className="font-['Gilroy:Semibold',sans-serif] text-[10px] text-[#1d1d1b] tracking-[-0.03px]">{type}</span>
     </div>
   );
@@ -91,8 +97,8 @@ function TypeBadge({ type }: { type: Campaign['type'] }) {
 
 function ModeBadge({ mode }: { mode: Campaign['mode'] }) {
   return (
-    <div className="absolute top-[8px] right-[8px] bg-white rounded-[4px] px-[6px] py-[3px]">
-      <span className="font-['Gilroy:Semibold',sans-serif] text-[10px] text-[#76869a] tracking-[-0.03px]">{mode}</span>
+    <div className="absolute top-[8px] right-[8px] bg-[#1d1d1b] rounded-full px-[8px] py-[4px]">
+      <span className="font-['Gilroy:Semibold',sans-serif] text-[10px] text-white tracking-[-0.03px]">{mode}</span>
     </div>
   );
 }
@@ -105,22 +111,22 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
         <TypeBadge type={campaign.type} />
         <ModeBadge mode={campaign.mode} />
       </div>
-      <div className="p-[16px] flex flex-col gap-[12px]">
-        <div className="flex flex-col gap-[4px]">
-          <p className="font-['Gilroy:Semibold',sans-serif] text-[13px] leading-[16px] text-[#1d1d1b] tracking-[-0.052px] truncate">
+      <div className="flex flex-col">
+        <div className="px-[16px] pt-[16px] pb-[14px] flex flex-col items-center gap-[4px]">
+          <p className="font-['Gilroy:Bold',sans-serif] text-[20px] leading-[24px] text-[#1d1d1b] tracking-[-0.3px] text-center truncate w-full">
             {campaign.title}
           </p>
-          <p className="font-['Gilroy:Medium',sans-serif] text-[11px] leading-[14px] text-[#97acbd] tracking-[-0.044px]">
+          <p className="font-['Gilroy:Semibold',sans-serif] text-[14px] leading-[18px] text-[#97acbd] tracking-[-0.084px] text-center">
             {campaign.count} {campaign.countLabel}
           </p>
         </div>
-        <div className="flex items-center gap-[12px] pt-[8px] border-t border-[#f0f4f6]">
+        <div className="flex items-center justify-between px-[16px] py-[14px] border-t border-[#c0cfd8]">
           {campaign.metrics.map((m, i) => (
-            <div key={i} className="flex items-center gap-[4px] text-[#76869a]">
-              <div className="size-[14px] rounded-full bg-[#e8edf0] flex items-center justify-center shrink-0 text-[#97acbd]">
+            <div key={i} className="flex items-center gap-[5px]">
+              <div className="size-[20px] rounded-full bg-[#f0f4f6] border border-[#e6ecf4] flex items-center justify-center shrink-0 text-[#97acbd]">
                 {m.icon}
               </div>
-              <span className="font-['Gilroy:Semibold',sans-serif] text-[11px] leading-[14px] text-[#1d1d1b] tracking-[-0.044px]">
+              <span className="font-['Gilroy:Semibold',sans-serif] text-[12px] leading-[14px] text-[#1d1d1b] tracking-[-0.072px]">
                 {m.value}
               </span>
             </div>
