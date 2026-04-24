@@ -53,7 +53,7 @@ export function UnifiedSidebar({
             <path d={svgPaths.p23951e00} fill="#76869A" />
           </svg>
         </div>
-        <div className="h-[14px] flex-1 min-w-0 relative">
+        <div className="aspect-[85.63534545898438/14.494268417358398] flex-[1_0_0] min-w-px relative">
           <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 85.6353 14.4934">
             <path d={svgPaths.p2d4abaf0} fill="#1D1D1B" />
           </svg>

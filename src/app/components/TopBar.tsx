@@ -8,14 +8,46 @@ interface TopBarProps {
   onSettingsClick?: () => void;
 }
 
-export function TopBar({ activeMenuItem, onMenuItemChange, isSettingsActive, onSettingsClick }: TopBarProps) {
-  const isAnalyticsActive = activeMenuItem === 'analytics';
+  // Outline icon SVGs (stroke-based, for inactive state)
+  const homeOutline = (
+    <svg className="absolute block inset-0 size-full" fill="none" viewBox="0 0 16 16">
+      <path d="M8 2.5L2 7.5V14H6V10H10V14H14V7.5L8 2.5Z" stroke="#76869A" strokeWidth="1.2" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+  const analyticsOutline = (
+    <svg className="absolute block inset-0 size-full" fill="none" viewBox="0 0 16 16">
+      <rect x="1.5" y="8" width="3" height="5.5" rx="0.6" stroke="#76869A" strokeWidth="1.2" />
+      <rect x="6.5" y="4.5" width="3" height="9" rx="0.6" stroke="#76869A" strokeWidth="1.2" />
+      <rect x="11.5" y="6" width="3" height="7.5" rx="0.6" stroke="#76869A" strokeWidth="1.2" />
+    </svg>
+  );
+  const allpostsOutline = (
+    <svg className="absolute block inset-0 size-full" fill="none" viewBox="0 0 16 16">
+      <rect x="1" y="1" width="6" height="6" rx="1" stroke="#76869A" strokeWidth="1.2" />
+      <rect x="9" y="1" width="6" height="6" rx="1" stroke="#76869A" strokeWidth="1.2" />
+      <rect x="1" y="9" width="6" height="6" rx="1" stroke="#76869A" strokeWidth="1.2" />
+      <rect x="9" y="9" width="6" height="6" rx="1" stroke="#76869A" strokeWidth="1.2" />
+    </svg>
+  );
+  const publishingOutline = (
+    <svg className="absolute block inset-0 size-full" fill="none" viewBox="0 0 16 16">
+      <rect x="1.5" y="3" width="13" height="11.5" rx="1.5" stroke="#76869A" strokeWidth="1.2" />
+      <path d="M1.5 7H14.5" stroke="#76869A" strokeWidth="1.2" />
+      <path d="M5.5 1.5V4.5M10.5 1.5V4.5" stroke="#76869A" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+  const conversationsOutline = (
+    <svg className="absolute block inset-0 size-full" fill="none" viewBox="0 0 16 16">
+      <path d="M13 2H3C2.44772 2 2 2.44772 2 3V10C2 10.5523 2.44772 11 3 11H6L8 13.5L10 11H13C13.5523 11 14 10.5523 14 10V3C14 2.44772 13.5523 2 13 2Z" stroke="#76869A" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
 
+export function TopBar({ activeMenuItem, onMenuItemChange, isSettingsActive, onSettingsClick }: TopBarProps) {
   const navItems = [
     {
       id: 'home' as L1MenuItem,
       label: 'Home',
-      icon: (
+      iconFilled: (
         <div className="absolute inset-[1.89%_5%_0_5%]">
           <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.4 15.698">
             <g>
@@ -25,21 +57,22 @@ export function TopBar({ activeMenuItem, onMenuItemChange, isSettingsActive, onS
           </svg>
         </div>
       ),
+      iconOutline: homeOutline,
     },
     {
       id: 'analytics' as L1MenuItem,
       label: 'Profile',
-      isActive: isAnalyticsActive,
-      icon: (
+      iconFilled: (
         <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 16">
-          <path clipRule="evenodd" d={svgPaths.pe15dd80} fill={isAnalyticsActive ? "#76869A" : "#76869A"} fillRule="evenodd" />
+          <path clipRule="evenodd" d={svgPaths.pe15dd80} fill="#76869A" fillRule="evenodd" />
         </svg>
       ),
+      iconOutline: analyticsOutline,
     },
     {
       id: 'allposts' as L1MenuItem,
       label: 'Content',
-      icon: (
+      iconFilled: (
         <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 16">
           <g>
             <path clipRule="evenodd" d={svgPaths.p34831400} fill="#76869A" fillRule="evenodd" />
@@ -47,11 +80,12 @@ export function TopBar({ activeMenuItem, onMenuItemChange, isSettingsActive, onS
           </g>
         </svg>
       ),
+      iconOutline: allpostsOutline,
     },
     {
       id: 'publishing' as L1MenuItem,
       label: 'Publishing',
-      icon: (
+      iconFilled: (
         <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 16">
           <g>
             <path d={svgPaths.p2ed40680} fill="#76869A" />
@@ -59,11 +93,12 @@ export function TopBar({ activeMenuItem, onMenuItemChange, isSettingsActive, onS
           </g>
         </svg>
       ),
+      iconOutline: publishingOutline,
     },
     {
       id: 'conversations' as L1MenuItem,
       label: 'Conversations',
-      icon: (
+      iconFilled: (
         <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 16">
           <g>
             <path d={svgPaths.p6a6e680} fill="#76869A" />
@@ -73,6 +108,7 @@ export function TopBar({ activeMenuItem, onMenuItemChange, isSettingsActive, onS
           </g>
         </svg>
       ),
+      iconOutline: conversationsOutline,
     },
   ];
 
@@ -83,7 +119,7 @@ export function TopBar({ activeMenuItem, onMenuItemChange, isSettingsActive, onS
           {/* Left: Navigation Tabs */}
           <div className="content-stretch flex gap-[12px] h-full items-center relative shrink-0">
             {navItems.map((item) => {
-              const active = item.id === activeMenuItem || (item.id === 'analytics' && isAnalyticsActive);
+              const active = item.id === activeMenuItem;
               return (
                 <button
                   key={item.id}
@@ -97,7 +133,7 @@ export function TopBar({ activeMenuItem, onMenuItemChange, isSettingsActive, onS
                   <div className="content-stretch flex items-center justify-between pl-[4px] pr-[8px] py-[4px] relative size-full">
                     <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
                       <div className="relative shrink-0 size-[16px]">
-                        {item.icon}
+                        {active ? item.iconFilled : item.iconOutline}
                       </div>
                       <p className="font-['Gilroy:Semibold',sans-serif] leading-[14px] not-italic relative shrink-0 text-[#76869a] text-[12px] tracking-[-0.072px] whitespace-nowrap">
                         {item.label}

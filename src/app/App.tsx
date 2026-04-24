@@ -12,8 +12,8 @@ export default function App() {
   const [userCohort, setUserCohort] = useState<'launch' | 'excel' | 'trial'>('excel');
   const [navMode, setNavMode] = useState<'topbar' | 'sidebar'>('topbar');
 
-  const [activeMenuItem, setActiveMenuItem] = useState<L1MenuItem>('analytics');
-  const [activeSubMenuItem, setActiveSubMenuItem] = useState<string>('overview');
+  const [activeMenuItem, setActiveMenuItem] = useState<L1MenuItem>('home');
+  const [activeSubMenuItem, setActiveSubMenuItem] = useState<string>('home');
   const [activeView, setActiveView] = useState<'main' | 'settings'>('main');
   const [activeSettingsItem, setActiveSettingsItem] = useState('sparks-ai');
 
