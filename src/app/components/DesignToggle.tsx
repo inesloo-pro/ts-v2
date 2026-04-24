@@ -5,11 +5,15 @@ import { TestSettingsModal } from './TestSettingsModal';
 interface DesignToggleProps {
   userCohort: 'launch' | 'excel' | 'trial';
   onToggleUserCohort: (cohort: 'launch' | 'excel' | 'trial') => void;
+  navMode: 'topbar' | 'sidebar';
+  onNavModeChange: (mode: 'topbar' | 'sidebar') => void;
 }
 
 export function DesignToggle({
   userCohort,
-  onToggleUserCohort
+  onToggleUserCohort,
+  navMode,
+  onNavModeChange,
 }: DesignToggleProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
@@ -129,6 +133,8 @@ export function DesignToggle({
         onClose={() => setIsSettingsOpen(false)}
         userCohort={userCohort}
         onToggleUserCohort={onToggleUserCohort}
+        navMode={navMode}
+        onNavModeChange={onNavModeChange}
       />
     </>
   );

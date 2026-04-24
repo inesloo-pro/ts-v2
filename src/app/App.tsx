@@ -5,10 +5,12 @@ import { TopBar } from './components/TopBar';
 import { PageRouter } from './components/PageRouter';
 import { SettingsView } from './components/features/views/SettingsView';
 import { DesignToggle } from './components/DesignToggle';
+import { UnifiedSidebar } from './components/navigation/UnifiedSidebar';
 import { type L1MenuItem, getFirstSubPage } from './navigation/navConfig';
 
 export default function App() {
   const [userCohort, setUserCohort] = useState<'launch' | 'excel' | 'trial'>('excel');
+  const [navMode, setNavMode] = useState<'topbar' | 'sidebar'>('topbar');
 
   const [activeMenuItem, setActiveMenuItem] = useState<L1MenuItem>('analytics');
   const [activeSubMenuItem, setActiveSubMenuItem] = useState<string>('overview');
@@ -35,9 +37,21 @@ export default function App() {
       <DesignToggle
         userCohort={userCohort}
         onToggleUserCohort={setUserCohort}
+        navMode={navMode}
+        onNavModeChange={setNavMode}
       />
 
-      {activeView === 'settings' ? (
+      {/* Sidebar — changes based on navMode */}
+      {navMode === 'sidebar' ? (
+        <UnifiedSidebar
+          activeMenuItem={activeMenuItem}
+          onMenuItemChange={handleMenuItemChange}
+          activeSubMenuItem={activeSubMenuItem}
+          onSubMenuItemChange={setActiveSubMenuItem}
+          isSettingsActive={activeView === 'settings'}
+          onSettingsClick={handleSettingsClick}
+        />
+      ) : activeView === 'settings' ? (
         <SettingsSidebar
           activeItem={activeSettingsItem}
           onItemChange={setActiveSettingsItem}
@@ -52,15 +66,18 @@ export default function App() {
         />
       )}
 
-      <div className="flex flex-col flex-1 overflow-hidden pt-[12px] pl-[20px] pr-[12px]">
-        <TopBar
-          activeMenuItem={activeMenuItem}
-          onMenuItemChange={handleMenuItemChange}
-          isSettingsActive={activeView === 'settings'}
-          onSettingsClick={handleSettingsClick}
-        />
+      <div className={`flex flex-col flex-1 overflow-hidden pr-[12px] ${navMode === 'topbar' ? 'pt-[12px] pl-[20px]' : 'pt-[12px] pl-[12px]'}`}>
+        {/* TopBar only visible in topbar mode */}
+        {navMode === 'topbar' && (
+          <TopBar
+            activeMenuItem={activeMenuItem}
+            onMenuItemChange={handleMenuItemChange}
+            isSettingsActive={activeView === 'settings'}
+            onSettingsClick={handleSettingsClick}
+          />
+        )}
 
-        <div className="bg-[rgba(255,255,255,0.4)] flex-1 relative rounded-tl-[16px] rounded-tr-[16px] overflow-hidden">
+        <div className={`bg-[rgba(255,255,255,0.4)] flex-1 relative overflow-hidden ${navMode === 'topbar' ? 'rounded-tl-[16px] rounded-tr-[16px]' : 'rounded-[16px]'}`}>
           <div className="overflow-clip rounded-[inherit] size-full">
             {activeView === 'settings' ? (
               <SettingsView activeItem={activeSettingsItem} />
