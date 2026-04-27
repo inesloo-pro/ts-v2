@@ -167,13 +167,32 @@ export function CalendarView({ userCohort }: CalendarViewProps) {
   const [isGroupSelectorOpen, setIsGroupSelectorOpen] = useState(false);
   const [currentGroup,        setCurrentGroup]        = useState(initialGroup);
   const [currentProfileIds,   setCurrentProfileIds]   = useState(initialProfileIds);
-  const [isUnsavedSelection,  setIsUnsavedSelection]  = useState(false);
   const [mediaLibraryOpen,    setMediaLibraryOpen]    = useState(true);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  const profilesInGroup  = profiles.filter(p => currentProfileIds.includes(p.id));
+  // Derived: true when currentProfileIds doesn't match any existing group
+  const isUnsavedSelection = useMemo(() => {
+    const sorted = [...currentProfileIds].sort().join(',');
+    return !groups.some(g => {
+      const ids = [...(groupProfiles[g.id] || [])].sort().join(',');
+      return ids === sorted;
+    });
+  }, [currentProfileIds, groups, groupProfiles]);
+
+  // Sort profilesInGroup to match currentProfileIds order (drives layout animation)
+  const profilesInGroup = profiles
+    .filter(p => currentProfileIds.includes(p.id))
+    .sort((a, b) => currentProfileIds.indexOf(a.id) - currentProfileIds.indexOf(b.id));
+
   const currentGroupData = groups.find(g => g.id === currentGroup) ?? {
-    id: 'all', name: 'All', profileCount: profiles.length, badge: '...', avatar: undefined,
+    id: 'all', name: 'All', profileCount: profiles.length,
+    badge: userCohort === 'launch' ? 'LA' : userCohort === 'trial' ? 'TR' : 'ALL',
+    avatar: undefined,
+  };
+
+  // Handle profile selection — the selector handles visual reordering internally
+  const handleSelectItem = (item: string | null) => {
+    setSelectedItem(item);
   };
 
   return (
@@ -191,7 +210,7 @@ export function CalendarView({ userCohort }: CalendarViewProps) {
             groupAvatar={currentGroupData.avatar}
             profilesInGroup={profilesInGroup}
             selectedItem={selectedItem}
-            onSelectItem={setSelectedItem}
+            onSelectItem={handleSelectItem}
             onOpenGroupSelector={() => setIsGroupSelectorOpen(true)}
             isUnsavedSelection={isUnsavedSelection}
             onSaveSelection={() => {}}
@@ -354,12 +373,10 @@ export function CalendarView({ userCohort }: CalendarViewProps) {
           setCurrentGroup(groupId);
           setCurrentProfileIds(profileIds);
           setSelectedItem('group');
-          setIsUnsavedSelection(false);
           setIsGroupSelectorOpen(false);
         }}
         onUnsavedSelection={(profileIds) => {
           setCurrentProfileIds(profileIds);
-          setIsUnsavedSelection(true);
           setSelectedItem('group');
         }}
         onProfileFocus={(profileId) => setSelectedItem(profileId)}

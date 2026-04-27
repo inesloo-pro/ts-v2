@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import svgPaths from "../../../../assets/icons/svg-lx8i39d8oo";
 import svgPathsUnsaved from "../../../../assets/icons/svg-8i2va09s2v";
@@ -10,6 +10,7 @@ import { UnsupportedProfileTooltip } from '../profiles/UnsupportedProfileTooltip
 import { useSmartRedirectionTooltip } from '../../../hooks/useSmartRedirectionTooltip';
 import { SocialBadge, BadTokenBadge } from '../profiles/ProfileBadges';
 import { SelectorProfileAvatar } from '../profiles/SelectorProfileAvatar';
+
 
 interface FunctionalSPSelectorProps {
   currentGroup: string;
@@ -175,10 +176,55 @@ export function FunctionalSPSelector({
   const [showOverflowPopover, setShowOverflowPopover] = useState(false);
   const [maxVisibleProfiles, setMaxVisibleProfiles] = useState(5);
   const [hoveredUnsupportedProfile, setHoveredUnsupportedProfile] = useState<string | null>(null);
-  const profileRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const profileRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const overflowRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
+  // "Last active" sort order — a stack maintained inside this component so that
+  // the state change, the re-sort, and the motion.div layout all happen in ONE
+  // render cycle (required for Framer Motion FLIP to fire reliably).
+  //
+  // Rule: clicking any SP moves it to position 0 and shifts the rest right by 1.
+  // This is pure "sort by last active": most-recently-clicked is always first.
+  const [lastUsedOrder, setLastUsedOrder] = useState<string[]>(
+    () => (selectedItem && selectedItem !== 'group') ? [selectedItem] : []
+  );
+
+  // Reset when the group changes (new group → fresh order).
+  const prevGroupKey = useRef(currentGroup);
+  useEffect(() => {
+    if (currentGroup !== prevGroupKey.current) {
+      prevGroupKey.current = currentGroup;
+      setLastUsedOrder(
+        (selectedItem && selectedItem !== 'group') ? [selectedItem] : []
+      );
+    }
+  }, [currentGroup, selectedItem]);
+
+  // Sync when the parent redirects to a specific profile externally
+  // (smart redirection, group-modal focus, etc.) without a click in this component.
+  useEffect(() => {
+    if (selectedItem && selectedItem !== 'group') {
+      setLastUsedOrder(prev =>
+        prev[0] === selectedItem
+          ? prev
+          : [selectedItem, ...prev.filter(id => id !== selectedItem)]
+      );
+    }
+  }, [selectedItem]);
+
+  // Sort by last-active order:
+  //   1. Profiles that have been clicked, in reverse-click order (most recent first)
+  //   2. Never-clicked profiles in their original incoming order
+  const sortedProfiles = useMemo(() => {
+    if (lastUsedOrder.length === 0) return profilesInGroup;
+    const ordered = lastUsedOrder
+      .map(id => profilesInGroup.find(p => p.id === id))
+      .filter((p): p is SocialProfile => p !== undefined);
+    const remaining = profilesInGroup.filter(p => !lastUsedOrder.includes(p.id));
+    return [...ordered, ...remaining];
+  }, [profilesInGroup, lastUsedOrder]);
+
   // Use shared tooltip hook with extra delay for layout animations
   const { showTooltip, handleTooltipDismiss } = useSmartRedirectionTooltip({
     pendingRedirection,
@@ -187,9 +233,9 @@ export function FunctionalSPSelector({
     onRedirectionComplete,
     extraDelay: 500 // Extra delay for layout animations in Design A
   });
-  
-  const visibleProfiles = profilesInGroup.slice(0, maxVisibleProfiles);
-  const overflowProfiles = profilesInGroup.slice(maxVisibleProfiles);
+
+  const visibleProfiles = sortedProfiles.slice(0, maxVisibleProfiles);
+  const overflowProfiles = sortedProfiles.slice(maxVisibleProfiles);
   const hasOverflow = overflowProfiles.length > 0;
   const isGroupSelected = selectedItem === 'group';
 
@@ -293,42 +339,38 @@ export function FunctionalSPSelector({
         {/* Group item */}
         <div className="content-stretch flex items-center justify-center py-[12px] relative shrink-0">
           <button
-            onClick={() => {
-              if (groupSelectionStage === 'stage02' && isUnsavedSelection) {
-                onSaveSelection?.();
-              } else {
-                onSelectItem('group');
-              }
-            }}
-            className={`cursor-pointer transition-opacity ${currentView === 'allposts' ? 'opacity-60' : ''}`}
+            onClick={() => onSelectItem('group')}
+            className={`content-stretch flex flex-col gap-[12px] items-center justify-center p-[2px] relative rounded-[4px] shrink-0 size-[44px] cursor-pointer transition-all ${currentView === 'allposts' ? 'opacity-60' : ''}`}
           >
-            <div className={`${isUnsavedSelection ? 'bg-[#f0f0f0]' : 'bg-[#ebf2f4]'} relative rounded-[6px] shrink-0 size-[40px]`}>
-              <div className="overflow-clip relative rounded-[inherit] size-full">
-                {!isUnsavedSelection && groupAvatar ? (
-                  <img src={groupAvatar} alt="Group" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="-translate-x-1/2 -translate-y-1/2 absolute flex flex-col font-['Gilroy:Semibold',sans-serif] justify-center leading-[0] left-1/2 not-italic text-[#76869a] text-[16px] text-center top-1/2 tracking-[-0.08px]">
-                    <p className="leading-[24px]">{isUnsavedSelection ? 'US' : groupBadge}</p>
-                  </div>
-                )}
-              </div>
-              <div aria-hidden="true" className="absolute border-2 border-solid border-white inset-[-1px] pointer-events-none rounded-[7px]" />
-              {isUnsavedSelection && !(limitTo50SPsPerGroup && profilesInGroup.length > 50) && (
-                <div
-                  className="absolute bg-[#606060] content-stretch flex items-center justify-center right-[-4px] p-px rounded-[999px] size-[16px] bottom-[-4px] cursor-pointer hover:bg-[#505050] transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSaveSelection?.();
-                  }}
-                >
-                  <div className="relative shrink-0 size-[8px]">
-                    <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                      <path clipRule="evenodd" d={svgPathsUnsaved.p107a7800} fill="white" fillRule="evenodd" />
-                    </svg>
-                  </div>
+            <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[4px] ${isGroupSelected ? 'border-[#76869a]' : 'border-transparent'}`} />
+            <div className={`${isUnsavedSelection ? 'bg-[#f0f0f0]' : 'bg-[#ebf2f4]'} content-stretch flex flex-[1_0_0] items-center justify-center min-h-px min-w-px relative rounded-[2px] w-full overflow-hidden`}>
+              <div aria-hidden="true" className="absolute border border-[#c0cfd8] border-solid inset-0 pointer-events-none rounded-[2px]" />
+              {!isUnsavedSelection && groupAvatar ? (
+                <img src={groupAvatar} alt="Group" className="w-full h-full object-cover" />
+              ) : (
+                <div className="flex flex-col font-['Gilroy:Semibold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#76869a] text-[11px] whitespace-nowrap">
+                  <p className="leading-[12px]">{isUnsavedSelection ? 'US' : groupBadge}</p>
                 </div>
               )}
             </div>
+            {isUnsavedSelection && !(limitTo50SPsPerGroup && profilesInGroup.length > 50) && (
+              <div
+                className="absolute bg-[#606060] content-stretch flex items-center justify-center right-[-4px] p-px rounded-[999px] size-[16px] bottom-[-4px] cursor-pointer hover:bg-[#505050] transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSaveSelection?.();
+                }}
+              >
+                <div className="relative shrink-0 size-[8px]">
+                  <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
+                    <path clipRule="evenodd" d={svgPathsUnsaved.p107a7800} fill="white" fillRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            )}
+            {isGroupSelected && (
+              <div className="-translate-x-1/2 absolute bg-[#76869a] h-px left-1/2 rounded-[1px] top-[51px] w-[40px]" />
+            )}
           </button>
         </div>
 
@@ -336,13 +378,11 @@ export function FunctionalSPSelector({
         <div className="bg-[#c0cfd8] h-[40px] shrink-0 w-px" />
 
         {/* Social profile items - animated with layout animations */}
-        <div className="content-stretch flex gap-[16px] items-center relative shrink-0">
+        <div className="flex gap-[16px] items-center">
           <AnimatePresence mode="popLayout">
             {visibleProfiles.map((profile) => {
               const isSelected = selectedItem === profile.id;
               const isUnsupported = currentView === 'calendar' && profile.platform === 'youtube';
-              const platformColor = getPlatformColor(profile.platform);
-              const initials = getProfileInitials(profile.name);
 
               return (
                 <motion.div
@@ -356,44 +396,22 @@ export function FunctionalSPSelector({
                     opacity: { duration: 0.3 },
                     scale: { duration: 0.3 }
                   }}
-                  className="content-stretch flex items-center justify-center py-[12px] relative shrink-0"
-                  ref={isSelected ? firstProfileRef : undefined}
+                  className="shrink-0"
                 >
-                  {/* Selected underline */}
-                  {isSelected && (
-                    <div aria-hidden="true" className="absolute border-[#76869a] border-b-2 border-solid inset-0 pointer-events-none" />
-                  )}
-
-                  <button
-                    ref={(el) => el && profileRefs.current.set(profile.id, el)}
-                    onClick={() => onSelectItem(profile.id)}
-                    onMouseEnter={() => isUnsupported ? setHoveredUnsupportedProfile(profile.id) : null}
-                    onMouseLeave={() => setHoveredUnsupportedProfile(null)}
-                    className={`content-stretch flex flex-col items-start relative shrink-0 cursor-pointer ${isUnsupported ? 'opacity-50' : ''}`}
-                  >
-                    {/* Avatar */}
-                    <div className="pointer-events-none relative rounded-[9999px] shrink-0 size-[40px]">
-                      {profile.avatar ? (
-                        <img alt={profile.name} className="absolute inset-0 max-w-none object-cover rounded-[9999px] size-full" src={profile.avatar} />
-                      ) : (
-                        <div
-                          className="absolute inset-0 rounded-[9999px] flex items-center justify-center"
-                          style={{ backgroundColor: platformColor }}
-                        >
-                          <div className="flex flex-col font-['Gilroy:Semibold',sans-serif] justify-center leading-[0] not-italic text-[#606060] text-[9px] whitespace-nowrap z-[1]">
-                            <p className="leading-[10px]">{initials}</p>
-                          </div>
-                        </div>
-                      )}
-                      <div aria-hidden="true" className="absolute border-2 border-solid border-white inset-[-1px] rounded-[10000px]" />
-                    </div>
-
-                    {/* Platform badge */}
-                    <SocialBadge platform={profile.platform} />
-
-                    {/* Bad token badge */}
-                    {profile.hasBadToken && <BadTokenBadge />}
-                  </button>
+                  <div ref={isSelected ? firstProfileRef : undefined}>
+                    <SelectorProfileAvatar
+                      ref={(el) => el && profileRefs.current.set(profile.id, el)}
+                      profile={profile}
+                      isSelected={isSelected}
+                      isUnsupported={isUnsupported}
+                      onSelect={() => {
+                        setLastUsedOrder(prev => [profile.id, ...prev.filter(id => id !== profile.id)]);
+                        onSelectItem(profile.id);
+                      }}
+                      onMouseEnter={() => isUnsupported ? setHoveredUnsupportedProfile(profile.id) : null}
+                      onMouseLeave={() => setHoveredUnsupportedProfile(null)}
+                    />
+                  </div>
                 </motion.div>
               );
             })}
@@ -417,7 +435,10 @@ export function FunctionalSPSelector({
             {showOverflowPopover && (
               <OverflowPopover
                 profiles={overflowProfiles}
-                onSelect={(profile) => onSelectItem(profile.id)}
+                onSelect={(profile) => {
+                  setLastUsedOrder(prev => [profile.id, ...prev.filter(id => id !== profile.id)]);
+                  onSelectItem(profile.id);
+                }}
                 onClose={() => setShowOverflowPopover(false)}
                 currentView={currentView}
               />

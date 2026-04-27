@@ -116,15 +116,15 @@ export function GroupSelectionModal({
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed z-50 rounded-[4px]" 
+    <div
+      className="fixed z-50"
       ref={modalRef}
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`
       }}
     >
-      <div className="shadow-[10px_4px_60px_0px_rgba(0,0,0,0.25)]">
+      <div className="shadow-[0px_8px_40px_0px_rgba(29,29,27,0.16)] rounded-[12px]">
         <ProfileManager 
           onGroupChange={handleGroupChange}
           onUnsavedSelection={handleUnsavedSelection}

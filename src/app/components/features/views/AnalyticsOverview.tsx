@@ -63,39 +63,32 @@ export function AnalyticsOverview({ userCohort }: AnalyticsOverviewProps) {
   const [isGroupSelectorOpen, setIsGroupSelectorOpen] = useState(false);
   const [currentGroup, setCurrentGroup] = useState(initialGroup);
   const [currentProfileIds, setCurrentProfileIds] = useState(initialProfileIds);
-  const [isUnsavedSelection, setIsUnsavedSelection] = useState(false);
   const selectorRef = useRef<HTMLDivElement>(null);
+
+  // Derived: true when currentProfileIds doesn't match any existing group
+  const isUnsavedSelection = useMemo(() => {
+    const sorted = [...currentProfileIds].sort().join(',');
+    return !groups.some(g => {
+      const ids = [...(groupProfiles[g.id] || [])].sort().join(',');
+      return ids === sorted;
+    });
+  }, [currentProfileIds, groups, groupProfiles]);
 
   const handleGroupChange = (groupId: string, name: string, profileIds: string[]) => {
     setCurrentGroup(groupId);
     setCurrentProfileIds(profileIds);
     setSelectedItem('group');
-    setIsUnsavedSelection(false);
     setIsGroupSelectorOpen(false);
   };
 
   const handleUnsavedSelection = (profileIds: string[]) => {
     setCurrentProfileIds(profileIds);
-    setIsUnsavedSelection(true);
     setSelectedItem('group');
   };
 
-  // Handle profile selection with repositioning
+  // Handle profile selection — the selector handles visual reordering internally
   const handleSelectItem = (item: string | null) => {
     setSelectedItem(item);
-
-    // If a profile is selected (not 'group'), move it to first position
-    if (item && item !== 'group') {
-      const selectedIndex = currentProfileIds.indexOf(item);
-      if (selectedIndex > 0) {
-        // Reorder: move selected profile to first position
-        const newOrder = [
-          item,
-          ...currentProfileIds.filter(id => id !== item)
-        ];
-        setCurrentProfileIds(newOrder);
-      }
-    }
   };
 
   // Get current group badge
