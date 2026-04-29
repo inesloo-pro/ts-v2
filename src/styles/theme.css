@@ -79,6 +79,7 @@
 }
 
 @theme inline {
+  --font-sans: 'Gilroy', sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -126,6 +127,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Gilroy', sans-serif;
   }
 
   /**
@@ -135,6 +137,7 @@
 
   html {
     font-size: var(--font-size);
+    font-family: 'Gilroy', sans-serif;
   }
 
   h1 {

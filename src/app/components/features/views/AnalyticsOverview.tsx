@@ -1,5 +1,8 @@
 import { useState, useRef, useMemo } from 'react';
+import { Download, Users, Heart, MessageCircle, LayoutGrid } from 'lucide-react';
+import { ExportReportModal } from './ExportReportModal';
 import svgPaths from "../../../../imports/Iconosquare-4-1/svg-cr9mbv1gr2";
+import { KpiCard } from '../../ui/KpiCard';
 import { FunctionalSPSelector } from "../navigation/FunctionalSPSelector";
 import { GroupSelectionModal } from "../groups/GroupSelectionModal";
 import {
@@ -53,45 +56,39 @@ export function AnalyticsOverview({ userCohort }: AnalyticsOverviewProps) {
     ? (groupProfiles[initialGroup] || [])
     : profiles.map(p => p.id);
 
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<string | null>(
     groups.length > 0 ? 'group' : (profiles[0]?.id || null)
   );
   const [isGroupSelectorOpen, setIsGroupSelectorOpen] = useState(false);
   const [currentGroup, setCurrentGroup] = useState(initialGroup);
   const [currentProfileIds, setCurrentProfileIds] = useState(initialProfileIds);
-  const [isUnsavedSelection, setIsUnsavedSelection] = useState(false);
   const selectorRef = useRef<HTMLDivElement>(null);
+
+  // Derived: true when currentProfileIds doesn't match any existing group
+  const isUnsavedSelection = useMemo(() => {
+    const sorted = [...currentProfileIds].sort().join(',');
+    return !groups.some(g => {
+      const ids = [...(groupProfiles[g.id] || [])].sort().join(',');
+      return ids === sorted;
+    });
+  }, [currentProfileIds, groups, groupProfiles]);
 
   const handleGroupChange = (groupId: string, name: string, profileIds: string[]) => {
     setCurrentGroup(groupId);
     setCurrentProfileIds(profileIds);
     setSelectedItem('group');
-    setIsUnsavedSelection(false);
     setIsGroupSelectorOpen(false);
   };
 
   const handleUnsavedSelection = (profileIds: string[]) => {
     setCurrentProfileIds(profileIds);
-    setIsUnsavedSelection(true);
     setSelectedItem('group');
   };
 
-  // Handle profile selection with repositioning
+  // Handle profile selection — the selector handles visual reordering internally
   const handleSelectItem = (item: string | null) => {
     setSelectedItem(item);
-
-    // If a profile is selected (not 'group'), move it to first position
-    if (item && item !== 'group') {
-      const selectedIndex = currentProfileIds.indexOf(item);
-      if (selectedIndex > 0) {
-        // Reorder: move selected profile to first position
-        const newOrder = [
-          item,
-          ...currentProfileIds.filter(id => id !== item)
-        ];
-        setCurrentProfileIds(newOrder);
-      }
-    }
   };
 
   // Get current group badge
@@ -101,11 +98,11 @@ export function AnalyticsOverview({ userCohort }: AnalyticsOverviewProps) {
   return (
     <div className="content-stretch flex flex-col gap-[32px] items-start p-[32px] relative size-full">
       {/* Header */}
-      <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-full">
+      <div className="content-stretch flex items-center gap-[16px] relative shrink-0 w-full">
         <div className="flex flex-col font-['Gilroy:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1d1d1b] text-[32px] tracking-[-0.32px] whitespace-nowrap">
           <p className="leading-[32px]">Overview</p>
         </div>
-        <div ref={selectorRef} className="relative shrink-0 h-[64px] w-full">
+        <div ref={selectorRef} className="relative shrink-0 h-[64px] flex-1 min-w-0">
           <FunctionalSPSelector
             currentGroup={currentGroup}
             groupBadge={currentGroupBadge}
@@ -122,6 +119,13 @@ export function AnalyticsOverview({ userCohort }: AnalyticsOverviewProps) {
             onSaveSelection={() => console.log('Save unsaved selection as new group')}
           />
         </div>
+        <button
+          onClick={() => setIsExportModalOpen(true)}
+          className="bg-[#76869a] flex items-center gap-[8px] rounded-[6px] h-[40px] px-[16px] shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+        >
+          <span className="font-['Gilroy:Semibold',sans-serif] text-[14px] text-white tracking-[-0.112px] whitespace-nowrap leading-[16px]">Export</span>
+          <Download size={16} color="white" />
+        </button>
       </div>
 
       {/* Group Selection Modal - always available for all cohorts */}
@@ -141,6 +145,11 @@ export function AnalyticsOverview({ userCohort }: AnalyticsOverviewProps) {
         groupProfiles={groupProfiles}
         groupSelectionStage="stage01"
         canCreateGroups={userCohort !== 'launch'}
+      />
+
+      <ExportReportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
       />
 
       {/* Date Filters and KPI Cards */}
@@ -199,301 +208,18 @@ export function AnalyticsOverview({ userCohort }: AnalyticsOverviewProps) {
         </div>
 
         {/* KPI Cards Row 1 */}
-        <div className="content-stretch flex gap-[20px] items-start relative shrink-0 w-full">
-          {/* Followers Card */}
-          <div className="bg-white content-stretch flex flex-[1_0_0] flex-col gap-[24px] items-center justify-center min-h-[220px] min-w-[220px] pb-[32px] relative rounded-[6px]">
-            <div className="relative shrink-0 w-full">
-              <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
-                <div className="content-stretch flex items-center justify-between p-[8px] relative size-full">
-                  <div className="content-stretch flex gap-[12px] items-center relative shrink-0">
-                    <div className="relative shrink-0 size-[12px]">
-                      <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
-                        <g>
-                          <path d={svgPaths.p169da270} fill="#97ACBD" />
-                          <path d={svgPaths.p161d8e80} fill="#97ACBD" />
-                          <path clipRule="evenodd" d={svgPaths.p369f5df0} fill="#97ACBD" fillRule="evenodd" />
-                        </g>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="relative shrink-0 w-full">
-              <div className="flex flex-col items-center size-full">
-                <div className="content-stretch flex flex-col gap-[20px] items-center px-[32px] relative size-full">
-                  <div className="bg-[#ebf2f4] relative rounded-[9999px] shrink-0">
-                    <div className="content-stretch flex flex-col items-center justify-center overflow-clip p-[20px] relative rounded-[inherit] size-full">
-                      <div className="relative shrink-0 size-[24px]">
-                        <div className="absolute inset-[1.25%]">
-                          <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 23.4 23.4">
-                            <g>
-                              <path d={svgPaths.p35557100} fill="#76869A" />
-                              <path d={svgPaths.p311b3980} fill="#76869A" />
-                              <path d={svgPaths.p34995c40} fill="#76869A" />
-                              <path d={svgPaths.p30bdf230} fill="#76869A" />
-                            </g>
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                    <div aria-hidden="true" className="absolute border border-[#c0cfd8] border-solid inset-0 pointer-events-none rounded-[9999px]" />
-                  </div>
-                  <div className="content-stretch flex flex-col gap-[12px] items-center relative shrink-0 w-full">
-                    <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
-                      <div className="content-stretch flex items-center relative shrink-0">
-                        <div className="flex flex-col font-['Gilroy:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1d1d1b] text-[32px] text-center tracking-[-0.32px] whitespace-nowrap">
-                          <p className="leading-[32px]">625.3</p>
-                        </div>
-                        <div className="content-stretch flex flex-col items-center justify-center relative shrink-0">
-                          <div className="flex flex-col font-['Gilroy:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1d1d1b] text-[32px] text-center tracking-[-0.32px] whitespace-nowrap">
-                            <p className="leading-[32px]">K</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col font-['Gilroy:Semibold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#76869a] text-[16px] text-center tracking-[-0.08px] whitespace-nowrap">
-                      <p className="leading-[20px]">Followers</p>
-                    </div>
-                  </div>
-                  <div className="bg-[#ebf2f4] content-stretch flex gap-[2px] items-center overflow-clip px-[6px] py-[4px] relative rounded-[9999px] shrink-0">
-                    <div className="relative shrink-0 size-[14px]">
-                      <div className="absolute inset-[28.57%]">
-                        <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.99975 5.99975">
-                          <path d={svgPaths.p21e7ff40} fill="#76869A" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="content-stretch flex font-['Gilroy:Semibold',sans-serif] items-center leading-[0] not-italic relative shrink-0 text-[#76869a] text-[12px] text-center tracking-[-0.072px] whitespace-nowrap">
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">+</p>
-                      </div>
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">100.00</p>
-                      </div>
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">%</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div className="flex gap-[20px] items-stretch w-full">
+          <div className="flex-1 min-w-0">
+            <KpiCard icon={<Users size={24} />} value="625.3" unit="K" name="Followers" evolution="+100.00%" />
           </div>
-
-          {/* Likes Card */}
-          <div className="bg-white content-stretch flex flex-[1_0_0] flex-col gap-[24px] items-center justify-center min-h-[220px] min-w-[220px] pb-[32px] relative rounded-[6px]">
-            <div className="relative shrink-0 w-full">
-              <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
-                <div className="content-stretch flex items-center justify-between p-[8px] relative size-full">
-                  <div className="content-stretch flex gap-[12px] items-center relative shrink-0">
-                    <div className="relative shrink-0 size-[12px]">
-                      <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
-                        <g>
-                          <path d={svgPaths.p169da270} fill="#97ACBD" />
-                          <path d={svgPaths.p161d8e80} fill="#97ACBD" />
-                          <path clipRule="evenodd" d={svgPaths.p369f5df0} fill="#97ACBD" fillRule="evenodd" />
-                        </g>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="relative shrink-0 w-full">
-              <div className="flex flex-col items-center size-full">
-                <div className="content-stretch flex flex-col gap-[20px] items-center px-[32px] relative size-full">
-                  <div className="bg-[#ebf2f4] relative rounded-[9999px] shrink-0">
-                    <div className="content-stretch flex flex-col items-center justify-center overflow-clip p-[20px] relative rounded-[inherit] size-full">
-                      <div className="relative shrink-0 size-[24px]">
-                        <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
-                          <path d={svgPaths.p1e9e3700} fill="#76869A" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div aria-hidden="true" className="absolute border border-[#c0cfd8] border-solid inset-0 pointer-events-none rounded-[9999px]" />
-                  </div>
-                  <div className="content-stretch flex flex-col gap-[12px] items-center relative shrink-0 w-full">
-                    <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
-                      <div className="content-stretch flex items-center relative shrink-0">
-                        <div className="flex flex-col font-['Gilroy:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1d1d1b] text-[32px] text-center tracking-[-0.32px] whitespace-nowrap">
-                          <p className="leading-[32px]">983</p>
-                        </div>
-                        <div className="content-stretch flex flex-col items-center justify-center relative shrink-0">
-                          <div className="flex flex-col font-['Gilroy:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1d1d1b] text-[32px] text-center tracking-[-0.32px] whitespace-nowrap">
-                            <p className="leading-[32px]">K</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col font-['Gilroy:Semibold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#76869a] text-[16px] text-center tracking-[-0.08px] whitespace-nowrap">
-                      <p className="leading-[20px]">Likes</p>
-                    </div>
-                  </div>
-                  <div className="bg-[#ebf2f4] content-stretch flex gap-[2px] items-center overflow-clip px-[6px] py-[4px] relative rounded-[9999px] shrink-0">
-                    <div className="relative shrink-0 size-[14px]">
-                      <div className="absolute inset-[28.57%]">
-                        <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.99975 5.99975">
-                          <path d={svgPaths.p21e7ff40} fill="#76869A" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="content-stretch flex font-['Gilroy:Semibold',sans-serif] items-center leading-[0] not-italic relative shrink-0 text-[#76869a] text-[12px] text-center tracking-[-0.072px] whitespace-nowrap">
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">+</p>
-                      </div>
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">100.00</p>
-                      </div>
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">%</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex-1 min-w-0">
+            <KpiCard icon={<Heart size={24} />} value="983" unit="K" name="Likes" evolution="+100.00%" />
           </div>
-
-          {/* Comments Card */}
-          <div className="bg-white content-stretch flex flex-[1_0_0] flex-col gap-[24px] items-center justify-center min-h-[220px] min-w-[220px] pb-[32px] relative rounded-[6px]">
-            <div className="relative shrink-0 w-full">
-              <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
-                <div className="content-stretch flex items-center justify-between p-[8px] relative size-full">
-                  <div className="content-stretch flex gap-[12px] items-center relative shrink-0">
-                    <div className="relative shrink-0 size-[12px]">
-                      <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
-                        <g>
-                          <path d={svgPaths.p169da270} fill="#97ACBD" />
-                          <path d={svgPaths.p161d8e80} fill="#97ACBD" />
-                          <path clipRule="evenodd" d={svgPaths.p369f5df0} fill="#97ACBD" fillRule="evenodd" />
-                        </g>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="relative shrink-0 w-full">
-              <div className="flex flex-col items-center size-full">
-                <div className="content-stretch flex flex-col gap-[20px] items-center px-[32px] relative size-full">
-                  <div className="bg-[#ebf2f4] relative rounded-[9999px] shrink-0">
-                    <div className="content-stretch flex flex-col items-center justify-center overflow-clip p-[20px] relative rounded-[inherit] size-full">
-                      <div className="relative shrink-0 size-[24px]">
-                        <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
-                          <path d={svgPaths.p20db2c80} fill="#76869A" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div aria-hidden="true" className="absolute border border-[#c0cfd8] border-solid inset-0 pointer-events-none rounded-[9999px]" />
-                  </div>
-                  <div className="content-stretch flex flex-col gap-[12px] items-center relative shrink-0 w-full">
-                    <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
-                      <div className="content-stretch flex items-center relative shrink-0">
-                        <div className="flex flex-col font-['Gilroy:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1d1d1b] text-[32px] text-center tracking-[-0.32px] whitespace-nowrap">
-                          <p className="leading-[32px]">453.2</p>
-                        </div>
-                        <div className="content-stretch flex flex-col items-center justify-center relative shrink-0">
-                          <div className="flex flex-col font-['Gilroy:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1d1d1b] text-[32px] text-center tracking-[-0.32px] whitespace-nowrap">
-                            <p className="leading-[32px]">K</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col font-['Gilroy:Semibold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#76869a] text-[16px] text-center tracking-[-0.08px] whitespace-nowrap">
-                      <p className="leading-[20px]">Comments</p>
-                    </div>
-                  </div>
-                  <div className="bg-[#ebf2f4] content-stretch flex gap-[2px] items-center overflow-clip px-[6px] py-[4px] relative rounded-[9999px] shrink-0">
-                    <div className="relative shrink-0 size-[14px]">
-                      <div className="absolute inset-[28.57%]">
-                        <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.99975 5.99975">
-                          <path d={svgPaths.p21e7ff40} fill="#76869A" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="content-stretch flex font-['Gilroy:Semibold',sans-serif] items-center leading-[0] not-italic relative shrink-0 text-[#76869a] text-[12px] text-center tracking-[-0.072px] whitespace-nowrap">
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">+</p>
-                      </div>
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">100.00</p>
-                      </div>
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">%</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex-1 min-w-0">
+            <KpiCard icon={<MessageCircle size={24} />} value="453.2" unit="K" name="Comments" evolution="+100.00%" />
           </div>
-
-          {/* Posts Card */}
-          <div className="bg-white content-stretch flex flex-[1_0_0] flex-col gap-[24px] items-center justify-center min-h-[220px] min-w-[220px] pb-[32px] relative rounded-[6px]">
-            <div className="relative shrink-0 w-full">
-              <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
-                <div className="content-stretch flex items-center justify-between p-[8px] relative size-full">
-                  <div className="content-stretch flex gap-[12px] items-center relative shrink-0">
-                    <div className="relative shrink-0 size-[12px]">
-                      <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
-                        <g>
-                          <path d={svgPaths.p169da270} fill="#97ACBD" />
-                          <path d={svgPaths.p161d8e80} fill="#97ACBD" />
-                          <path clipRule="evenodd" d={svgPaths.p369f5df0} fill="#97ACBD" fillRule="evenodd" />
-                        </g>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="relative shrink-0 w-full">
-              <div className="flex flex-col items-center size-full">
-                <div className="content-stretch flex flex-col gap-[20px] items-center px-[32px] relative size-full">
-                  <div className="bg-[#ebf2f4] relative rounded-[9999px] shrink-0">
-                    <div className="content-stretch flex flex-col items-center justify-center overflow-clip p-[20px] relative rounded-[inherit] size-full">
-                      <div className="relative shrink-0 size-[24px]">
-                        <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
-                          <path clipRule="evenodd" d={svgPaths.p2e5ecf00} fill="#76869A" fillRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div aria-hidden="true" className="absolute border border-[#c0cfd8] border-solid inset-0 pointer-events-none rounded-[9999px]" />
-                  </div>
-                  <div className="content-stretch flex flex-col gap-[12px] items-center relative shrink-0 w-full">
-                    <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
-                      <div className="flex flex-col font-['Gilroy:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1d1d1b] text-[32px] text-center tracking-[-0.32px] whitespace-nowrap">
-                        <p className="leading-[32px]">835</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col font-['Gilroy:Semibold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#76869a] text-[16px] text-center tracking-[-0.08px] whitespace-nowrap">
-                      <p className="leading-[20px]">Posts</p>
-                    </div>
-                  </div>
-                  <div className="bg-[#ebf2f4] content-stretch flex gap-[2px] items-center overflow-clip px-[6px] py-[4px] relative rounded-[9999px] shrink-0">
-                    <div className="relative shrink-0 size-[14px]">
-                      <div className="absolute inset-[28.57%]">
-                        <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.99975 5.99975">
-                          <path d={svgPaths.p21e7ff40} fill="#76869A" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="content-stretch flex font-['Gilroy:Semibold',sans-serif] items-center leading-[0] not-italic relative shrink-0 text-[#76869a] text-[12px] text-center tracking-[-0.072px] whitespace-nowrap">
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">+</p>
-                      </div>
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">100.00</p>
-                      </div>
-                      <div className="flex flex-col justify-center relative shrink-0">
-                        <p className="leading-[14px]">%</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex-1 min-w-0">
+            <KpiCard icon={<LayoutGrid size={24} />} value="835" name="Posts" evolution="+100.00%" />
           </div>
         </div>
       </div>

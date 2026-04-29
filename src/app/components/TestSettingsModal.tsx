@@ -6,13 +6,17 @@ interface TestSettingsModalProps {
   onClose: () => void;
   userCohort: 'launch' | 'excel' | 'trial';
   onToggleUserCohort: (cohort: 'launch' | 'excel' | 'trial') => void;
+  navMode: 'topbar' | 'sidebar';
+  onNavModeChange: (mode: 'topbar' | 'sidebar') => void;
 }
 
 export function TestSettingsModal({
   isOpen,
   onClose,
   userCohort,
-  onToggleUserCohort
+  onToggleUserCohort,
+  navMode,
+  onNavModeChange,
 }: TestSettingsModalProps) {
   // Close on escape key
   useEffect(() => {
@@ -117,6 +121,50 @@ export function TestSettingsModal({
                   <div className={`text-[11px] mt-[2px] ${userCohort === 'trial' ? 'text-white/80' : 'text-[#888888]'}`}>
                     4 SPs, Can create groups
                   </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Navigation Mode Section */}
+          <div className="mb-[24px]">
+            <div className="flex items-center justify-between mb-[12px]">
+              <div>
+                <h3 className="font-['Gilroy:Semibold',sans-serif] text-[14px] text-[#1a1a1a] tracking-[-0.3px]">
+                  Navigation Mode
+                </h3>
+                <p className="font-['Gilroy:Regular',sans-serif] text-[12px] text-[#888888] mt-[2px] tracking-[-0.2px]">
+                  Switch between top bar and unified sidebar navigation
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-[8px]">
+              <button
+                onClick={() => onNavModeChange('topbar')}
+                className={`flex-1 px-[16px] py-[12px] rounded-[8px] font-['Gilroy:Semibold',sans-serif] text-[13px] tracking-[-0.3px] transition-all border text-left ${
+                  navMode === 'topbar'
+                    ? 'bg-[#0089FF] text-white border-[#0089FF] shadow-sm'
+                    : 'bg-white text-[#606060] border-[#e0e0e0] hover:border-[#c0c0c0]'
+                }`}
+              >
+                <div className="font-['Gilroy:Bold',sans-serif] text-[14px]">Top Bar</div>
+                <div className={`text-[11px] mt-[2px] ${navMode === 'topbar' ? 'text-white/80' : 'text-[#888888]'}`}>
+                  L1 in top bar, L2 in sidebar
+                </div>
+              </button>
+
+              <button
+                onClick={() => onNavModeChange('sidebar')}
+                className={`flex-1 px-[16px] py-[12px] rounded-[8px] font-['Gilroy:Semibold',sans-serif] text-[13px] tracking-[-0.3px] transition-all border text-left ${
+                  navMode === 'sidebar'
+                    ? 'bg-[#0089FF] text-white border-[#0089FF] shadow-sm'
+                    : 'bg-white text-[#606060] border-[#e0e0e0] hover:border-[#c0c0c0]'
+                }`}
+              >
+                <div className="font-['Gilroy:Bold',sans-serif] text-[14px]">Unified Sidebar</div>
+                <div className={`text-[11px] mt-[2px] ${navMode === 'sidebar' ? 'text-white/80' : 'text-[#888888]'}`}>
+                  All navigation in left sidebar
                 </div>
               </button>
             </div>
