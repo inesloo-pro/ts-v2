@@ -20,7 +20,7 @@ export const SETTINGS_NAV: SettingsNavGroup[] = [
       { id: 'data-access', label: 'Data Access', icon: <Unlock size={12} strokeWidth={1.75} /> },
       { id: 'security', label: 'Security', icon: <Shield size={12} strokeWidth={1.75} /> },
       { id: 'themes', label: 'Themes', icon: <Palette size={12} strokeWidth={1.75} /> },
-      { id: 'history', label: 'History', icon: <Clock size={12} strokeWidth={1.75} /> },
+      { id: 'history', label: 'Reports', icon: <Clock size={12} strokeWidth={1.75} /> },
     ],
   },
   {
