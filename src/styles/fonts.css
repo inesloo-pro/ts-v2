@@ -1,0 +1,145 @@
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ *  GILROY FONT DEFINITIONS
+ *  Source: Plus Jakarta Sans (Google Fonts) — closest open-source match
+ *          to the proprietary Gilroy typeface (geometric humanist sans-serif).
+ *
+ *  Variants defined below map 1-to-1 with every Figma token used in the
+ *  codebase via font-family: 'Gilroy:*' Tailwind classes.
+ *
+ *  Codebase font-size inventory:
+ *    8px   — notification / badge counters
+ *    10px  — "130+" profile count labels
+ *    11px  — DesignToggle segmented control
+ *    12px  — primary nav labels, sidebar sub-items, dropdown labels
+ *    13px  — modal body text, action buttons (TestSettingsModal, AdminMenu)
+ *    14px  — section headings (TestSettingsModal h3, AdminMenu h3/h4 text)
+ *    18px  — AdminMenu panel heading
+ *    20px  — TestSettingsModal main title
+ *
+ *  Codebase font-weight inventory:
+ *    400  Regular    → 'Gilroy:Regular'
+ *    500  Medium     → 'Gilroy:Medium'
+ *    600  SemiBold   → 'Gilroy:Semibold'
+ *    700  Bold       → 'Gilroy:Bold'
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+/* ── Google Fonts import (Plus Jakarta Sans, all required weights) ─────────── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
+
+/*
+ * ── @font-face aliases ───────────────────────────────────────────────────────
+ *
+ *  Each block declares a font-family name that exactly matches what Figma
+ *  exports (e.g. 'Gilroy:Semibold') so existing Tailwind classes like
+ *  font-['Gilroy:Semibold',sans-serif] resolve immediately without any
+ *  component changes.
+ *
+ *  local() sources are checked first — if the user has Gilroy installed on
+ *  their OS (e.g. a designer's machine) it will be used automatically.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+/* ── Regular (400) ── */
+@font-face {
+  font-family: 'Gilroy:Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    local('Gilroy Regular'),
+    local('Gilroy-Regular'),
+    local('Gilroy'),
+    url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_KU79eOQ.woff2') format('woff2');
+}
+
+/* ── Medium (500) ── */
+@font-face {
+  font-family: 'Gilroy:Medium';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src:
+    local('Gilroy Medium'),
+    local('Gilroy-Medium'),
+    url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_p079eOQ.woff2') format('woff2');
+}
+
+/* ── SemiBold (600) ── */
+@font-face {
+  font-family: 'Gilroy:Semibold';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src:
+    local('Gilroy SemiBold'),
+    local('Gilroy-SemiBold'),
+    local('Gilroy Semibold'),
+    url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_SU19eOQ.woff2') format('woff2');
+}
+
+/* ── Bold (700) ── */
+@font-face {
+  font-family: 'Gilroy:Bold';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src:
+    local('Gilroy Bold'),
+    local('Gilroy-Bold'),
+    url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_fU19eOQ.woff2') format('woff2');
+}
+
+/*
+ * ── Convenience: unified 'Gilroy' family with font-weight axis ───────────────
+ *
+ *  Allows usage via font-family: 'Gilroy' + font-weight: 400/500/600/700
+ *  as an alternative to the variant-named families above.
+ *  Both patterns now work in the codebase.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+@font-face {
+  font-family: 'Gilroy';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    local('Gilroy Regular'),
+    local('Gilroy-Regular'),
+    url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_KU79eOQ.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Gilroy';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src:
+    local('Gilroy Medium'),
+    local('Gilroy-Medium'),
+    url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_p079eOQ.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Gilroy';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src:
+    local('Gilroy SemiBold'),
+    local('Gilroy-SemiBold'),
+    url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_SU19eOQ.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Gilroy';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src:
+    local('Gilroy Bold'),
+    local('Gilroy-Bold'),
+    url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_fU19eOQ.woff2') format('woff2');
+}
