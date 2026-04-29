@@ -75,6 +75,32 @@ const ConversationsSolid = (
   </svg>
 );
 
+const ListeningOutline = (
+  <svg className="absolute block inset-0 size-full" fill="none" viewBox="0 0 20 20">
+    {/* Headband arc — thin band */}
+    <path d="M2 10A8 8 0 0 1 18 10H16.5A6.5 6.5 0 0 0 3.5 10H2Z" fill={C} />
+    {/* Left ear cup — hollow */}
+    <path fillRule="evenodd" clipRule="evenodd"
+      d="M1 10C1 9.72 1.22 9.5 1.5 9.5H6.5C6.78 9.5 7 9.72 7 10V17.5C7 18.33 6.33 19 5.5 19H2.5C1.67 19 1 18.33 1 17.5V10ZM2.5 11H5.5V17.5H2.5V11Z"
+      fill={C} />
+    {/* Right ear cup — hollow */}
+    <path fillRule="evenodd" clipRule="evenodd"
+      d="M13 10C13 9.72 13.22 9.5 13.5 9.5H18.5C18.78 9.5 19 9.72 19 10V17.5C19 18.33 18.33 19 17.5 19H14.5C13.67 19 13 18.33 13 17.5V10ZM14.5 11H17.5V17.5H14.5V11Z"
+      fill={C} />
+  </svg>
+);
+
+const ListeningSolid = (
+  <svg className="absolute block inset-0 size-full" fill="none" viewBox="0 0 20 20">
+    {/* Headband arc — thick fill */}
+    <path d="M2 10A8 8 0 0 1 18 10H15A5 5 0 0 0 5 10H2Z" fill={C} />
+    {/* Left ear cup — solid */}
+    <path d="M1 10C1 9.72 1.22 9.5 1.5 9.5H6.5C6.78 9.5 7 9.72 7 10V17.5C7 18.33 6.33 19 5.5 19H2.5C1.67 19 1 18.33 1 17.5V10Z" fill={C} />
+    {/* Right ear cup — solid */}
+    <path d="M13 10C13 9.72 13.22 9.5 13.5 9.5H18.5C18.78 9.5 19 9.72 19 10V17.5C19 18.33 18.33 19 17.5 19H14.5C13.67 19 13 18.33 13 17.5V10Z" fill={C} />
+  </svg>
+);
+
 // ─────────────────────────────────────────────────────────────────
 
 interface TopBarProps {
@@ -91,6 +117,7 @@ export function TopBar({ activeMenuItem, onMenuItemChange, isSettingsActive, onS
     { id: 'allposts',      label: 'Content',       iconOutline: AllPostsOutline,      iconSolid: AllPostsSolid      },
     { id: 'publishing',    label: 'Publishing',    iconOutline: PublishingOutline,    iconSolid: PublishingSolid    },
     { id: 'conversations', label: 'Conversations', iconOutline: ConversationsOutline, iconSolid: ConversationsSolid },
+    { id: 'listening',     label: 'Listening',      iconOutline: ListeningOutline,      iconSolid: ListeningSolid      },
   ];
 
   return (
